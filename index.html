@@ -19,7 +19,7 @@
 </head>
 <body>
     <div id="baslik">
-        <h1>Harran Ovası Tarım Haritası</h1>
+        <h1>Harran Ovası Ürün Deseni Belirleme Sistemi</h1>
         <p>2025 Yılı Uydu Analizi ve Model Tahminleri</p>
     </div>
     <div id="map"></div>
@@ -27,7 +27,7 @@
     <script>
         const map = L.map('map', { maxZoom: 20 }).setView([36.90, 39.00], 11); 
         L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
-            attribution: 'Tiles &copy; Esri'
+            attribution: 'Tiles &copy; Esri',
             maxNativeZoom: 18,
             maxZoom: 20
         }).addTo(map);
@@ -39,22 +39,30 @@
             return '#808080';
         }
 
-        fetch('Harran_Web_Harita.geojson')
-            .then(response => response.json())
-            .then(data => {
-                L.geoJSON(data, {
-                    style: function (feature) {
-                        let tahmin = feature.properties.Model_Tahmini_2025 || feature.properties.Yapay_Zeka_Tahmini_2025;
-                        return { fillColor: urunRengiGetir(tahmin), weight: 1, opacity: 1, color: '#000', fillOpacity: 0.6 };
-                    },
-                    onEachFeature: function (feature, layer) {
-                        let tahmin = feature.properties.Model_Tahmini_2025 || feature.properties.Yapay_Zeka_Tahmini_2025;
-                        let guven = feature.properties.Tahmin_Guven_2025;
-                        let guvenYuzde = guven ? (guven * 100).toFixed(1) + '%' : 'Bilinmiyor';
-                        layer.bindPopup(`<div class="popup-title">Tarla Analizi</div><div class="popup-stat"><b>Tahmin:</b> ${tahmin}</div><div class="popup-stat"><b>Model Güveni:</b> ${guvenYuzde}</div>`);
-                    }
-                }).addTo(map);
-            });
+        // 2 Parçalı veri okuma sistemi
+        const dosyalar = [
+            'Harran_Web_Harita_Part1.geojson', 
+            'Harran_Web_Harita_Part2.geojson'
+        ];
+
+        dosyalar.forEach(dosya => {
+            fetch(dosya)
+                .then(response => response.json())
+                .then(data => {
+                    L.geoJSON(data, {
+                        style: function (feature) {
+                            let tahmin = feature.properties.Model_Tahmini_2025 || feature.properties.Yapay_Zeka_Tahmini_2025;
+                            return { fillColor: urunRengiGetir(tahmin), weight: 1, opacity: 1, color: '#000', fillOpacity: 0.6 };
+                        },
+                        onEachFeature: function (feature, layer) {
+                            let tahmin = feature.properties.Model_Tahmini_2025 || feature.properties.Yapay_Zeka_Tahmini_2025;
+                            let guven = feature.properties.Tahmin_Guven_2025;
+                            let guvenYuzde = guven ? (guven * 100).toFixed(1) + '%' : 'Bilinmiyor';
+                            layer.bindPopup(`<div class="popup-title">Tarla Analizi</div><div class="popup-stat"><b>Tahmin:</b> ${tahmin}</div><div class="popup-stat"><b>Model Güveni:</b> ${guvenYuzde}</div>`);
+                        }
+                    }).addTo(map);
+                });
+        });
 
         // LEJANT (BİLGİ ANAHTARI) EKLENTİSİ
         var legend = L.control({position: 'bottomright'});
