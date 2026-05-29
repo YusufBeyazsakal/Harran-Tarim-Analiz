@@ -25,7 +25,6 @@
     <div id="map"></div>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
-        // preferCanvas: true performansı artırır
         const map = L.map('map', { maxZoom: 20, preferCanvas: true }).setView([36.90, 39.00], 11); 
         L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
             attribution: 'Tiles &copy; Esri',
@@ -40,10 +39,7 @@
             return '#808080';
         }
 
-        const dosyalar = [
-            'Harran_Web_Harita_Part1.geojson', 
-            'Harran_Web_Harita_Part2.geojson'
-        ];
+        const dosyalar = ['Harran_Web_Harita_Part1.geojson', 'Harran_Web_Harita_Part2.geojson'];
 
         dosyalar.forEach(dosya => {
             fetch(dosya)
@@ -52,13 +48,8 @@
                     L.geoJSON(data, {
                         style: function (feature) {
                             let tahmin = feature.properties.Model_Tahmini_2025 || feature.properties.Yapay_Zeka_Tahmini_2025;
-                            return { 
-                                fillColor: urunRengiGetir(tahmin), 
-                                weight: 0.5,          // Çizgiler tekrar belirginleştirildi (eski simsiyah hali kadar yorucu değil)
-                                color: '#333',        // Yumuşak ama net bir koyu gri sınır
-                                opacity: 1,
-                                fillOpacity: 0.8      // Renkler tekrar canlandırıldı
-                            };
+                            // Orijinal net ve belirgin sınırlar geri getirildi
+                            return { fillColor: urunRengiGetir(tahmin), weight: 1, opacity: 1, color: '#000', fillOpacity: 0.6 };
                         },
                         onEachFeature: function (feature, layer) {
                             let tahmin = feature.properties.Model_Tahmini_2025 || feature.properties.Yapay_Zeka_Tahmini_2025;
@@ -79,7 +70,6 @@
             div.style.color = "white";
             div.style.border = "1px solid #555";
             div.style.lineHeight = "24px";
-            
             div.innerHTML += '<h4 style="margin:0 0 5px 0; color:#4CAF50;">Ürünler</h4>';
             div.innerHTML += '<i style="background:#FFD700; width:15px; height:15px; display:inline-block; margin-right:5px; vertical-align: middle;"></i> Mısır<br>';
             div.innerHTML += '<i style="background:#FFFFFF; width:15px; height:15px; display:inline-block; margin-right:5px; border: 1px solid #ccc; vertical-align: middle;"></i> Pamuk<br>';
