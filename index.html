@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Harran Ovası Rekolte Tahmin Sistemi</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <style>
+        body { margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, sans-serif; background-color: #121212; color: white; }
+        #baslik { position: absolute; top: 20px; left: 50%; transform: translateX(-50%); z-index: 1000; background: rgba(0, 0, 0, 0.8); padding: 15px 30px; border-radius: 8px; border: 1px solid #333; text-align: center; }
+        #baslik h1 { margin: 0; font-size: 24px; color: #4CAF50; }
+        #baslik p { margin: 5px 0 0 0; font-size: 14px; color: #ccc; }
+        #map { width: 100vw; height: 100vh; }
+        .leaflet-popup-content-wrapper { background: #1e1e1e; color: #fff; border-radius: 5px; border: 1px solid #444; }
+        .leaflet-popup-tip { background: #1e1e1e; }
+        .popup-title { color: #4CAF50; font-weight: bold; font-size: 16px; margin-bottom: 5px; border-bottom: 1px solid #444; padding-bottom: 5px;}
+        .popup-stat { font-size: 14px; margin: 3px 0; }
+    </style>
+</head>
+<body>
+    <div id="baslik">
+        <h1>Harran Ovası Tarım Haritası</h1>
+        <p>2025 Yılı Uydu Analizi ve Model Tahminleri</p>
+    </div>
+    <div id="map"></div>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+        const map = L.map('map').setView([36.90, 39.00], 11);
+        L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+            attribution: 'Tiles &copy; Esri'
+        }).addTo(map);
+
+        function urunRengiGetir(urunAdi) {
+            if (urunAdi === 'Misir') return '#FFD700';
+            if (urunAdi === 'Pamuk') return '#FFFFFF';
+            if (urunAdi === 'Bugday') return '#4CAF50';
+            return '#808080';
+        }
+
+        fetch('Harran_Web_Harita.geojson')
+            .then(response => response.json())
+            .then(data => {
+                L.geoJSON(data, {
+                    style: function (feature) {
+                        let tahmin = feature.properties.Model_Tahmini_2025 || feature.properties.Yapay_Zeka_Tahmini_2025;
+                        return { fillColor: urunRengiGetir(tahmin), weight: 1, opacity: 1, color: '#000', fillOpacity: 0.6 };
+                    },
+                    onEachFeature: function (feature, layer) {
+                        let tahmin = feature.properties.Model_Tahmini_2025 || feature.properties.Yapay_Zeka_Tahmini_2025;
+                        let guven = feature.properties.Tahmin_Guven_2025;
+                        let guvenYuzde = guven ? (guven * 100).toFixed(1) + '%' : 'Bilinmiyor';
+                        layer.bindPopup(`<div class="popup-title">Tarla Analizi</div><div class="popup-stat"><b>Tahmin:</b> ${tahmin}</div><div class="popup-stat"><b>Model Güveni:</b> ${guvenYuzde}</div>`);
+                    }
+                }).addTo(map);
+            });
+
+        // LEJANT (BİLGİ ANAHTARI) EKLENTİSİ
+        var legend = L.control({position: 'bottomright'});
+        legend.onAdd = function (map) {
+            var div = L.DomUtil.create('div', 'info legend');
+            div.style.backgroundColor = "rgba(30, 30, 30, 0.8)";
+            div.style.padding = "10px";
+            div.style.borderRadius = "5px";
+            div.style.color = "white";
+            div.style.border = "1px solid #555";
+            div.style.lineHeight = "24px";
+            
+            div.innerHTML += '<h4 style="margin:0 0 5px 0; color:#4CAF50;">Ürünler</h4>';
+            div.innerHTML += '<i style="background:#FFD700; width:15px; height:15px; display:inline-block; margin-right:5px; vertical-align: middle;"></i> Mısır<br>';
+            div.innerHTML += '<i style="background:#FFFFFF; width:15px; height:15px; display:inline-block; margin-right:5px; border: 1px solid #ccc; vertical-align: middle;"></i> Pamuk<br>';
+            div.innerHTML += '<i style="background:#4CAF50; width:15px; height:15px; display:inline-block; margin-right:5px; vertical-align: middle;"></i> Buğday<br>';
+            div.innerHTML += '<i style="background:#808080; width:15px; height:15px; display:inline-block; margin-right:5px; vertical-align: middle;"></i> Belirsiz<br>';
+            return div;
+        };
+        legend.addTo(map);
+    </script>
+</body>
+</html>
