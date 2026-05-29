@@ -25,7 +25,8 @@
     <div id="map"></div>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
-        const map = L.map('map', { maxZoom: 20 }).setView([36.90, 39.00], 11); 
+        // preferCanvas: true -> Tarayıcının 67 bin tarlada donmasını engeller ve tıklamaları anında algılar
+        const map = L.map('map', { maxZoom: 20, preferCanvas: true }).setView([36.90, 39.00], 11); 
         L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
             attribution: 'Tiles &copy; Esri',
             maxNativeZoom: 18,
@@ -36,10 +37,9 @@
             if (urunAdi === 'Misir') return '#FFD700';
             if (urunAdi === 'Pamuk') return '#FFFFFF';
             if (urunAdi === 'Bugday') return '#4CAF50';
-            return '#808080';
+            return '#808080'; // Belirsiz
         }
 
-        // 2 Parçalı veri okuma sistemi
         const dosyalar = [
             'Harran_Web_Harita_Part1.geojson', 
             'Harran_Web_Harita_Part2.geojson'
@@ -52,7 +52,14 @@
                     L.geoJSON(data, {
                         style: function (feature) {
                             let tahmin = feature.properties.Model_Tahmini_2025 || feature.properties.Yapay_Zeka_Tahmini_2025;
-                            return { fillColor: urunRengiGetir(tahmin), weight: 1, opacity: 1, color: '#000', fillOpacity: 0.6 };
+                            return { 
+                                fillColor: urunRengiGetir(tahmin), 
+                                weight: 0.2,          // Kalın siyah çizgiler inceltildi, harita ferahladı
+                                color: '#555',        // Sınır rengi yumuşatıldı
+                                opacity: 0.8,
+                                fillOpacity: 0.7,
+                                smoothFactor: 0       // Tarlaların pürüzsüz ve doğal görünmesi sağlandı
+                            };
                         },
                         onEachFeature: function (feature, layer) {
                             let tahmin = feature.properties.Model_Tahmini_2025 || feature.properties.Yapay_Zeka_Tahmini_2025;
@@ -64,7 +71,6 @@
                 });
         });
 
-        // LEJANT (BİLGİ ANAHTARI) EKLENTİSİ
         var legend = L.control({position: 'bottomright'});
         legend.onAdd = function (map) {
             var div = L.DomUtil.create('div', 'info legend');
