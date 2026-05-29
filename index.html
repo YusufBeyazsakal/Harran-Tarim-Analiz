@@ -25,7 +25,7 @@
     <div id="map"></div>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
-        // preferCanvas: true -> Tarayıcının 67 bin tarlada donmasını engeller ve tıklamaları anında algılar
+        // preferCanvas: true performansı artırır
         const map = L.map('map', { maxZoom: 20, preferCanvas: true }).setView([36.90, 39.00], 11); 
         L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
             attribution: 'Tiles &copy; Esri',
@@ -37,7 +37,7 @@
             if (urunAdi === 'Misir') return '#FFD700';
             if (urunAdi === 'Pamuk') return '#FFFFFF';
             if (urunAdi === 'Bugday') return '#4CAF50';
-            return '#808080'; // Belirsiz
+            return '#808080';
         }
 
         const dosyalar = [
@@ -54,11 +54,10 @@
                             let tahmin = feature.properties.Model_Tahmini_2025 || feature.properties.Yapay_Zeka_Tahmini_2025;
                             return { 
                                 fillColor: urunRengiGetir(tahmin), 
-                                weight: 0.2,          // Kalın siyah çizgiler inceltildi, harita ferahladı
-                                color: '#555',        // Sınır rengi yumuşatıldı
-                                opacity: 0.8,
-                                fillOpacity: 0.7,
-                                smoothFactor: 0       // Tarlaların pürüzsüz ve doğal görünmesi sağlandı
+                                weight: 0.5,          // Çizgiler tekrar belirginleştirildi (eski simsiyah hali kadar yorucu değil)
+                                color: '#333',        // Yumuşak ama net bir koyu gri sınır
+                                opacity: 1,
+                                fillOpacity: 0.8      // Renkler tekrar canlandırıldı
                             };
                         },
                         onEachFeature: function (feature, layer) {
