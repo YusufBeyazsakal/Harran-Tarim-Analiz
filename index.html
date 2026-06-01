@@ -25,6 +25,7 @@
     <div id="map"></div>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
+        // preferCanvas: true ile 67.000 tarlanın tarayıcıyı dondurması engellendi
         const map = L.map('map', { maxZoom: 20, preferCanvas: true }).setView([36.90, 39.00], 11); 
         L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
             attribution: 'Tiles &copy; Esri',
@@ -36,42 +37,32 @@
             if (urunAdi === 'Misir') return '#FFD700';
             if (urunAdi === 'Pamuk') return '#FFFFFF';
             if (urunAdi === 'Bugday') return '#4CAF50';
-            return '#808080'; // Belirsiz ve diğer her şey için gri
+            return '#808080'; // Belirsiz
         }
 
-        // Artık orijinal sınırlara sahip 4 dosyayı okuyoruz
-        const dosyalar = [
-            'Harran_Web_Harita_Part1.geojson', 
-            'Harran_Web_Harita_Part2.geojson',
-            'Harran_Web_Harita_Part3.geojson',
-            'Harran_Web_Harita_Part4.geojson'
-        ];
-
-        dosyalar.forEach(dosya => {
-            fetch(dosya)
-                .then(response => response.json())
-                .then(data => {
-                    L.geoJSON(data, {
-                        style: function (feature) {
-                            // JS tarafında da eksik veri gelirse diye 'Belirsiz' garantisi eklendi
-                            let tahmin = feature.properties.Model_Tahmini_2025 || feature.properties.Yapay_Zeka_Tahmini_2025 || 'Belirsiz';
-                            return { 
-                                fillColor: urunRengiGetir(tahmin), 
-                                weight: 1,           // Sınırlar net
-                                color: '#111',       // Sınır rengi siyah
-                                opacity: 1,
-                                fillOpacity: 0.7
-                            };
-                        },
-                        onEachFeature: function (feature, layer) {
-                            let tahmin = feature.properties.Model_Tahmini_2025 || feature.properties.Yapay_Zeka_Tahmini_2025 || 'Belirsiz';
-                            let guven = feature.properties.Tahmin_Guven_2025;
-                            let guvenYuzde = guven ? (guven * 100).toFixed(1) + '%' : 'Bilinmiyor';
-                            layer.bindPopup(`<div class="popup-title">Tarla Analizi</div><div class="popup-stat"><b>Tahmin:</b> ${tahmin}</div><div class="popup-stat"><b>Model Güveni:</b> ${guvenYuzde}</div>`);
-                        }
-                    }).addTo(map);
-                });
-        });
+        // TEK PARÇA ORİJİNAL DOSYA OKUNUYOR
+        fetch('Harran_YapayZeka_Sonuclari_2025_v4.geojson')
+            .then(response => response.json())
+            .then(data => {
+                L.geoJSON(data, {
+                    style: function (feature) {
+                        let tahmin = feature.properties.Model_Tahmini_2025 || feature.properties.Yapay_Zeka_Tahmini_2025 || 'Belirsiz';
+                        return { 
+                            fillColor: urunRengiGetir(tahmin), 
+                            weight: 1,           // Sınırlar net
+                            color: '#111',       // Keskin siyah çizgiler
+                            opacity: 1,
+                            fillOpacity: 0.7
+                        };
+                    },
+                    onEachFeature: function (feature, layer) {
+                        let tahmin = feature.properties.Model_Tahmini_2025 || feature.properties.Yapay_Zeka_Tahmini_2025 || 'Belirsiz';
+                        let guven = feature.properties.Tahmin_Guven_2025;
+                        let guvenYuzde = guven ? (guven * 100).toFixed(1) + '%' : 'Bilinmiyor';
+                        layer.bindPopup(`<div class="popup-title">Tarla Analizi</div><div class="popup-stat"><b>Tahmin:</b> ${tahmin}</div><div class="popup-stat"><b>Model Güveni:</b> ${guvenYuzde}</div>`);
+                    }
+                }).addTo(map);
+            });
 
         var legend = L.control({position: 'bottomright'});
         legend.onAdd = function (map) {
